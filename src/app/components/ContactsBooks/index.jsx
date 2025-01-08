@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import styles from "./contact.module.css";
 
 const ContactsBooks = () => {
   const [userInput, setUserInput] = useState({
@@ -8,6 +9,9 @@ const ContactsBooks = () => {
     city: "",
   });
   const [userDetails, setUserDetails] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
+
+  console.log("editIndex", editIndex)
 
   const handleInputChange = (event) => {
     const { value, name } = event.target;
@@ -20,19 +24,37 @@ const ContactsBooks = () => {
   const handleFormSubmit = (event) => {
     event.preventDefault();
     if (userInput.userName.trim() && userInput.city.trim()) {
-      setUserDetails((prevDetails) => [...prevDetails, userInput]);
-      setUserInput({ userName: " ", city: "" });
+      if (editIndex !== null) {
+        const updatedDetails = [...userDetails];
+        updatedDetails[editIndex] = userInput;
+        setUserDetails(updatedDetails);
+        setEditIndex(null);
+      } else {
+        setUserDetails((prevDetails) => [...prevDetails, userInput]);
+      }
+      setUserInput({ userName: "", city: "" });
     } else {
       alert("Please fill the field");
     }
   };
 
+  const handleDeleteContact = (index) => {
+    const newContactDetails = userDetails.filter((_, item) => item !== index);
+    setUserDetails(newContactDetails);
+  };
+
+  const handleEditContact = (index) => {
+    setEditIndex(index);
+    setUserInput(userDetails[index]);
+  };
+
   return (
-    <div>
-      <h2>Add a new contact</h2>
+    <div className={styles.container}>
+      <h2 className={styles.heading}>
+        {editIndex !== null ? "Edit Contact" : "Add a New Contact"}
+      </h2>
       <form onSubmit={handleFormSubmit}>
         <label htmlFor="userName">Name</label>
-
         <input
           placeholder="Name"
           name="userName"
@@ -41,27 +63,34 @@ const ContactsBooks = () => {
         />
 
         <label htmlFor="city">City</label>
-
         <input
           placeholder="City"
           name="city"
           value={userInput.city}
           onChange={handleInputChange}
         />
-        <button>Add contact</button>
+        <button type="submit">
+          {editIndex !== null ? "Update Contact" : "Add Contact"}
+        </button>
       </form>
-      {userDetails.map((item, index) => {
-        return (
-          <div key={item + index}>
-            <h3>
-              <i>{item.userName}</i>
-            </h3>
-            <div>City : {item.city}</div>
 
-            <span>Edit</span>
+      <div className={styles.contactList}>
+        {userDetails.map((item, index) => (
+          <div key={`${item.userName}-${index}`} className={styles.contactItem}>
+            <h3>{item.userName}</h3>
+            <div>City: {item.city}</div>
+            <div className={styles.actions}>
+              <button onClick={() => handleEditContact(index)}>Edit</button>
+              <button
+                className={styles.deleteBtn}
+                onClick={() => handleDeleteContact(index)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 };
